@@ -1,28 +1,27 @@
-
 import torch
 from fastapi import FastAPI
-from instruct_pipeline import InstructionTextGenerationPipeline
-from transformers import AutoModelForCausalLM, AutoTokenizer
-
+from transformers import pipeline
 
 app = FastAPI()
 
-tokenizer = AutoTokenizer.from_pretrained("databricks/dolly-v2-3b", padding_side="left")
-model = AutoModelForCausalLM.from_pretrained("databricks/dolly-v2-3b", device_map="auto", torch_dtype=torch.bfloat16)
+generate_text = pipeline(
+    model="databricks/dolly-v2-3b",
+    torch_dtype=torch.bfloat16,
+    trust_remote_code=True,
+    device_map="auto"
+)
 
-generate_text = InstructionTextGenerationPipeline(model=model, tokenizer=tokenizer)
-
-@app.route("/generate", methods=["POST"])
-def generate():
-    data = request.json
+@app.post("/generate")
+async def generate(data: dict):
     prompt = data["prompt"]
     max_length = data.get("max_length", 100)
 
-    input_ids = tokenizer.encode(prompt, return_tensors="pt")
-    output = generate_text.generate(input_ids, max_length=max_length)
-    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+    output = generate_text(prompt, max_length=max_length)
+    generated_text = output[0]["generated_text"]
 
-    return jsonify({"text": generated_text})
+    return {"text": generated_text}
 
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
