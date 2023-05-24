@@ -3,7 +3,8 @@ FROM python:3.9
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+
+RUN pip install accelerate>=0.12.0 transformers[torch]==4.25.1 fastapi uvicorn gunicorn
 
 COPY . .
 
