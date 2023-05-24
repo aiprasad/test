@@ -4,12 +4,7 @@ from transformers import pipeline
 
 app = FastAPI()
 
-generate_text = pipeline(
-    model="databricks/dolly-v2-3b",
-    torch_dtype=torch.bfloat16,
-    trust_remote_code=True,
-    device_map="auto"
-)
+generate_text = pipeline(model="databricks/dolly-v2-3b", torch_dtype=torch.bfloat16, trust_remote_code=True, device_map="auto")
 
 @app.post("/generate")
 async def generate(data: dict):
