@@ -1,7 +1,9 @@
+
+import torch
 from fastapi import FastAPI
 from instruct_pipeline import InstructionTextGenerationPipeline
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import torch
+
 
 app = FastAPI()
 
