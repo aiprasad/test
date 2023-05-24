@@ -1,0 +1,35 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  containerRegistry: '<To_replace_container-registry>'
+  imageName: 'dolly-api'
+
+steps:
+- task: Docker@2
+  displayName: 'Build and push Docker image'
+  inputs:
+    command: 'buildAndPush'
+    containerRegistry: $(containerRegistry)
+    repository: $(imageName)
+    Dockerfile: '**/Dockerfile'
+    tags: |
+      $(Build.BuildId)
+      latest
+
+- task: KubernetesManifest@0
+  displayName: 'Deploy to Kubernetes'
+  inputs:
+    action: 'deploy'
+    kubernetesServiceConnection: '<TO_Replace_kubernetes-service-connection>'
+    manifests: |
+      $(System.DefaultWorkingDirectory)/deployment.yaml
+      $(System.DefaultWorkingDirectory)/service.yaml
+      $(System.DefaultWorkingDirectory)/ingress.yaml
+    containers: |
+      $(containerRegistry)/$(imageName):$(Build.BuildId)
